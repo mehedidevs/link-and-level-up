@@ -1,12 +1,15 @@
 import 'package:retrofit/retrofit.dart';
 import 'package:dio/dio.dart';
 
+import '../core/constants/keys.dart';
+import '../db/secure_storage_service.dart';
 import 'athlete/createprofile/athlete_profile_request.dart';
 import 'athlete/createprofile/athlete_response.dart';
 import 'auth/login/login_request.dart';
 import 'auth/login/login_response.dart';
 import 'auth/register/sign_up_response.dart';
 import 'auth/register/user_request.dart';
+import 'facility/session_model.dart';
 
 part 'api_service.g.dart'; // This will link the generated file.
 
@@ -27,4 +30,32 @@ abstract class ApiService {
       @Path("id") int id,
       @Query("type") String type,
       @Body() AthleteProfileRequest request);
+
+  @GET('/api/facilitator/home')
+  Future<FacilitatorHomeResponse> getHome({
+    @Query('page') required int page,
+    @Query('limit') required int limit,
+  });
+/*
+  Future<FacilitatorHomeResponse> getFacilitatorHome({
+    required int page,
+    required int limit,
+  }) async {
+    final token = await SecureStorageService().getString(accessToken);
+
+    final response = await _dio.get(
+      '/api/facilitator/home',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
+
+    return FacilitatorHomeResponse.fromJson(response.data);
+  }*/
 }

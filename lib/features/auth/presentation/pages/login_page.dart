@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:dio/dio.dart';
 
-
 import '../../../../config/app_colors.dart';
 import '../../../../config/app_defaults.dart';
 import '../../../../config/app_icons.dart';
@@ -97,7 +96,11 @@ class _LoginPageState extends State<LoginPage> {
 
         if (mounted) {
           _showSuccess('Login successful!');
-          Navigator.pushReplacementNamed(context, AppRoutes.AthleteMainPage);
+          if (response.user.type == "facilitator") {
+            Navigator.pushReplacementNamed(context, AppRoutes.FacilitatorMain);
+          } else {
+            Navigator.pushReplacementNamed(context, AppRoutes.AthleteMainPage);
+          }
         }
       } else {
         _showError('Login failed. Please try again.');
@@ -164,14 +167,14 @@ class _LoginPageState extends State<LoginPage> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: AppColors.text300,
-                                fontWeight: FontWeight.w600
-                            ),
+                                fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(width: 4),
                           TextButton(
                               onPressed: _isLoading
                                   ? null
-                                  : () => Navigator.pushNamed(context, AppRoutes.signup),
+                                  : () => Navigator.pushNamed(
+                                      context, AppRoutes.signup),
                               child: const Text(
                                 'Sign Up',
                                 textAlign: TextAlign.center,
@@ -179,8 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.primary500,
                                 ),
-                              )
-                          ),
+                              )),
                         ],
                       ),
                     ),
@@ -195,8 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                             style: TextStyle(
                                 color: AppColors.text100,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14
-                            ),
+                                fontSize: 14),
                           ),
                           TextFormField(
                             controller: _userEmailController,
@@ -206,11 +207,13 @@ class _LoginPageState extends State<LoginPage> {
                               filled: true,
                               fillColor: AppColors.background700,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppDefaults.radius),
+                                borderRadius:
+                                    BorderRadius.circular(AppDefaults.radius),
                                 borderSide: BorderSide.none,
                               ),
                               hintText: 'Enter Email Address',
-                              hintStyle: const TextStyle(color: AppColors.text700),
+                              hintStyle:
+                                  const TextStyle(color: AppColors.text700),
                               prefixIcon: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -239,8 +242,7 @@ class _LoginPageState extends State<LoginPage> {
                             style: TextStyle(
                                 color: AppColors.text100,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14
-                            ),
+                                fontSize: 14),
                           ),
                           TextFormField(
                             controller: _passwordController,
@@ -251,11 +253,13 @@ class _LoginPageState extends State<LoginPage> {
                               filled: true,
                               fillColor: AppColors.background700,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppDefaults.radius),
+                                borderRadius:
+                                    BorderRadius.circular(AppDefaults.radius),
                                 borderSide: BorderSide.none,
                               ),
                               hintText: 'Enter Password',
-                              hintStyle: const TextStyle(color: AppColors.text700),
+                              hintStyle:
+                                  const TextStyle(color: AppColors.text700),
                               prefixIcon: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -277,12 +281,14 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               suffixIcon: IconButton(
                                 icon: Image.asset(
-                                    _isPasswordHidden ? AppIcons.lock : AppIcons.lock,
+                                    _isPasswordHidden
+                                        ? AppIcons.lock
+                                        : AppIcons.lock,
                                     color: _isPasswordHidden
                                         ? AppColors.secondary500
-                                        : Colors.white54
-                                ),
-                                onPressed: _isLoading ? null : _togglePasswordView,
+                                        : Colors.white54),
+                                onPressed:
+                                    _isLoading ? null : _togglePasswordView,
                               ),
                             ),
                             validator: _validatePassword,
@@ -292,21 +298,22 @@ class _LoginPageState extends State<LoginPage> {
                             onPressed: _isLoading ? null : _login,
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
-                                  vertical: AppDefaults.padding
-                              ),
+                                  vertical: AppDefaults.padding),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(AppDefaults.radius),
+                                borderRadius:
+                                    BorderRadius.circular(AppDefaults.radius),
                               ),
                             ),
                             child: _isLoading
                                 ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 0,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 0,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
+                                  )
                                 : const Text('Login'),
                           ),
                         ],
@@ -318,8 +325,7 @@ class _LoginPageState extends State<LoginPage> {
                       textAlign: TextAlign.start,
                       style: TextStyle(
                           color: AppColors.text400,
-                          fontWeight: FontWeight.w500
-                      ),
+                          fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: AppDefaults.space * 2),
                     const Row(
@@ -327,8 +333,7 @@ class _LoginPageState extends State<LoginPage> {
                         Expanded(child: Divider(color: Colors.white54)),
                         Padding(
                           padding: EdgeInsets.symmetric(
-                              horizontal: AppDefaults.padding
-                          ),
+                              horizontal: AppDefaults.padding),
                           child: Text(
                             'or',
                             style: TextStyle(color: Colors.white54),
@@ -345,10 +350,10 @@ class _LoginPageState extends State<LoginPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.background400,
                         padding: const EdgeInsets.symmetric(
-                            vertical: AppDefaults.padding
-                        ),
+                            vertical: AppDefaults.padding),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDefaults.radius),
+                          borderRadius:
+                              BorderRadius.circular(AppDefaults.radius),
                         ),
                       ),
                     ),
@@ -360,10 +365,10 @@ class _LoginPageState extends State<LoginPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.background700,
                         padding: const EdgeInsets.symmetric(
-                            vertical: AppDefaults.padding
-                        ),
+                            vertical: AppDefaults.padding),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDefaults.radius),
+                          borderRadius:
+                              BorderRadius.circular(AppDefaults.radius),
                         ),
                       ),
                     ),
@@ -371,7 +376,8 @@ class _LoginPageState extends State<LoginPage> {
                     TextButton(
                       onPressed: _isLoading
                           ? null
-                          : () => Navigator.pushNamed(context, AppRoutes.AthleteMainPage),
+                          : () => Navigator.pushNamed(
+                              context, AppRoutes.AthleteMainPage),
                       child: const Text(
                         'Skip For Now',
                         style: TextStyle(color: AppColors.secondary500),
