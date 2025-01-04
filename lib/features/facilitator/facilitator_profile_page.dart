@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-
 import '../../config/app_colors.dart';
 import '../../config/app_defaults.dart';
 import '../../config/routes/app_routes.dart';
@@ -21,6 +20,7 @@ class FacilitatorProfilePage extends StatelessWidget {
               ProfileHeader(),
               ProfileCompletionSection(),
               AboutSection(),
+              AddFacility(),
               FacilityListSection(),
               TrainerSection(),
               ReviewsSection(),
@@ -28,6 +28,31 @@ class FacilitatorProfilePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class AddFacility extends StatelessWidget {
+  const AddFacility({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            "Add Facility",
+            style: AppDefaults.sectionTitleTextStyle,
+          ),
+          InkWell(
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.AddFacilityPage);
+              },
+              child: SvgPicture.asset('icons/ic_add_circle.svg'))
+        ],
       ),
     );
   }
@@ -473,8 +498,8 @@ class _AddressSectionState extends State<AddressSection> {
               Text('Address', style: AppDefaults.bodyTitleTextStyle),
               TextButton(
                 onPressed: () {},
-                child:
-                    const Text('View on map', style: TextStyle(color: Colors.amber)),
+                child: const Text('View on map',
+                    style: TextStyle(color: Colors.amber)),
               ),
             ],
           ),
@@ -583,22 +608,26 @@ class EventCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, color: Colors.grey, size: 16),
+                      const Icon(Icons.location_on,
+                          color: Colors.grey, size: 16),
                       const SizedBox(width: 4),
                       Text(
                         location,
-                        style: const TextStyle(color: Colors.grey, fontSize: 14),
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 14),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, color: Colors.grey, size: 16),
+                      const Icon(Icons.calendar_today,
+                          color: Colors.grey, size: 16),
                       const SizedBox(width: 4),
                       Text(
                         '$date  $time',
-                        style: const TextStyle(color: Colors.grey, fontSize: 14),
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 14),
                       ),
                     ],
                   ),
@@ -717,8 +746,8 @@ class ReviewItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Row(
-                  children: List.generate(
-                      5, (index) => const Icon(Icons.star, color: Colors.amber)),
+                  children: List.generate(5,
+                      (index) => const Icon(Icons.star, color: Colors.amber)),
                 ),
                 const SizedBox(
                   width: AppDefaults.space / 2,
@@ -772,8 +801,8 @@ class Gallery extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ClipRRect(
-                    borderRadius:
-                        const BorderRadius.all(Radius.circular(AppDefaults.radius)),
+                    borderRadius: const BorderRadius.all(
+                        Radius.circular(AppDefaults.radius)),
                     child: Image.network(
                       'https://images.unsplash.com/photo-1611812695617-76998c1898af?q=80&w=3987&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                       // Replace with your image URL
@@ -787,8 +816,8 @@ class Gallery extends StatelessWidget {
                     width: AppDefaults.space,
                   ),
                   ClipRRect(
-                    borderRadius:
-                        const BorderRadius.all(Radius.circular(AppDefaults.radius)),
+                    borderRadius: const BorderRadius.all(
+                        Radius.circular(AppDefaults.radius)),
                     child: Image.network(
                       'https://images.unsplash.com/photo-1520642375575-d21ff7b96d49?q=80&w=3432&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                       // Replace with your image URL

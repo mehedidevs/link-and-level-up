@@ -32,10 +32,12 @@ abstract class ApiService {
       @Body() AthleteProfileRequest request);
 
   @GET('/api/facilitator/home')
-  Future<FacilitatorHomeResponse> getHome({
+  Future<FacilitatorHomeResponse> getFacilityHome({
     @Query('page') required int page,
     @Query('limit') required int limit,
   });
+
+
 /*
   Future<FacilitatorHomeResponse> getFacilitatorHome({
     required int page,

@@ -45,6 +45,7 @@ class AppColors {
   static const Color textSmall = Color(0xFFB5B3BC);
   static const Color childSelect = Color(0xFF45434D);
   static const Color childUnselect = Color(0xFF16141E);
+  static const Color textHint = Color(0xFF949399);
 
   ///Background Color
   static const Color background900 = Color(0xFF09080E);
@@ -69,6 +70,8 @@ class AppColors {
 
   // Others Color
   static const Color scaffoldBackground = Color(0xFF100F15);
+  static const Color inputFiledBackground = Color(0xFF14121E);
+  static const Color selectedBorderColor = Color(0xFF353755);
 
   /// used for page with box background
   static const Color scaffoldWithBoxBackground = Color(0xFFF7F7F7);

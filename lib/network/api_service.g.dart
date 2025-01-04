@@ -128,7 +128,7 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<FacilitatorHomeResponse> getHome({
+  Future<FacilitatorHomeResponse> getFacilityHome({
     required int page,
     required int limit,
   }) async {

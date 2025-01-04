@@ -80,6 +80,9 @@ dependencies:
   #permission_handler
   permission_handler: ^10.0.0
 
+  #image picker:
+  image_picker: ^1.0.7
+
 
 dev_dependencies:
   flutter_test:

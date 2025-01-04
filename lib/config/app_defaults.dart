@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
-
 class AppDefaults {
   static const double radius = 7.5;
   static const double margin = 15;
@@ -77,7 +76,8 @@ class AppDefaults {
       fontSize: 20, color: AppColors.text00, fontWeight: FontWeight.w500);
   static TextStyle titleSeeAll = GoogleFonts.inter(
       fontSize: 12, color: AppColors.primary500, fontWeight: FontWeight.w400);
-
+  static TextStyle hintStyle = GoogleFonts.inter(
+      fontSize: 12, color: AppColors.textHint, fontWeight: FontWeight.w400);
   static TextStyle primaryHeadline = GoogleFonts.inter(
       fontSize: 26, color: AppColors.primary600, fontWeight: FontWeight.w800);
 

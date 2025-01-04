@@ -172,9 +172,8 @@ class RouteGenerator {
             builder: (_) => const FacilityProfileDetails());
       case AppRoutes.FacilityDetails:
         return CupertinoPageRoute(builder: (_) => const FacilityDetails());
-      case AppRoutes.FacilitatorDetailsPage:
-        return CupertinoPageRoute(
-            builder: (_) => const FacilitatorDetailsPage());
+      case AppRoutes.AddFacilityPage:
+        return CupertinoPageRoute(builder: (_) => const AddFacilityPage());
       case AppRoutes.TrainerProfilePage:
         return CupertinoPageRoute(builder: (_) => const TrainerProfilePage());
       case AppRoutes.EditTrainerProfile:

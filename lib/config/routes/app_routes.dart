@@ -58,7 +58,6 @@ class AppRoutes {
 
   static const ChildrenSelectionPage = '/ChildrenSelectionPage';
 
-
   /// /
 
   /* <---- ENTRYPOINT -----> */
@@ -85,8 +84,7 @@ class AppRoutes {
   static const FacilityProfilePage = '/FacilityProfilePage';
   static const FacilityProfileDetails = '/FacilityProfileDetails';
   static const FacilityDetails = '/FacilityDetails';
-  static const FacilitatorDetailsPage = '/FacilitatorDetailsPage';
-
+  static const AddFacilityPage = '/AddFacilityPage';
 
   /// Order Status
   static const orderSuccessfull = '/orderSuccessfull';
@@ -121,6 +119,7 @@ class AppRoutes {
   /* <---- Review and Comments -----> */
   static const review = '/review';
   static const submitReview = '/submitReview';
+
   // Not Needed
   // static const errorPage = '/errorPage';
 

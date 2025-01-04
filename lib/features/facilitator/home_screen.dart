@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -7,8 +8,755 @@ import '../../components/buttons.dart';
 import '../../config/app_colors.dart';
 import '../../config/app_defaults.dart';
 import '../../config/routes/app_routes.dart';
+import '../../core/LoadingOverlay.dart';
+import '../../network/facility/session_model.dart';
+import '../../network/network_client.dart';
 
-class SessionScreen extends StatelessWidget {
+class SessionScreen extends StatefulWidget {
+  const SessionScreen({super.key});
+
+  @override
+  State<SessionScreen> createState() => _SessionScreenState();
+}
+
+class _SessionScreenState extends State<SessionScreen> {
+  bool _isLoading = false;
+  FacilitatorHomeResponse? _homeData;
+  String? _error;
+  final _networkClient = NetworkClient();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSessions();
+  }
+
+  Future<void> _loadSessions() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await _networkClient.apiService.getFacilityHome(
+        page: 1,
+        limit: 5,
+      );
+
+      setState(() {
+        _homeData = response;
+      });
+    } on DioException catch (e) {
+      String errorMessage = 'An error occurred';
+      if (e.response != null) {
+        errorMessage = e.response?.data['message'] ?? errorMessage;
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        errorMessage = 'Connection timeout';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'No internet connection';
+      }
+      setState(() => _error = errorMessage);
+    } catch (e) {
+      setState(() => _error = 'An unexpected error occurred');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
+      body: LoadingOverlay(
+        isLoading: _isLoading,
+        message: 'Loading sessions...',
+        child: RefreshIndicator(
+          onRefresh: _loadSessions,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                OngoingSessionSection(
+                  sessions: _homeData?.data.ongoingSessions ?? [],
+                ),
+                UpcomingSessionSection(
+                  sessions: _homeData?.data.upcomingSessions ?? [],
+                ),
+                SessionHistorySection(
+                  sessions: _homeData?.data.completedSessions ?? [],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class OngoingSessionSection extends StatelessWidget {
+  final List<SessionModel> sessions;
+
+  const OngoingSessionSection({
+    super.key,
+    required this.sessions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Ongoing Session',
+                style: AppDefaults.titleHeadlineStyle,
+              ),
+              TextButton(
+                onPressed: () {},
+                child: Text(
+                  'See all',
+                  style: AppDefaults.titleSeeAll,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (sessions.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text('No ongoing sessions',
+                style: TextStyle(color: Colors.grey)),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: sessions.length,
+            itemBuilder: (context, index) {
+              final session = sessions[index];
+              return SessionCard(
+                title: session.name,
+                description: session.description.isEmpty
+                    ? 'No description available'
+                    : session.description,
+                time: _formatTimeRange(session.startTime, session.endTime),
+                location: _formatLocation(session.latitude, session.longitude),
+              );
+            },
+          ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.CreateNewSessionPage);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.background500,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              minimumSize: const Size(double.infinity, 50),
+            ),
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: SvgPicture.asset('icons/ic_plus_circle.svg'),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Create New Session',
+                    style: AppDefaults.buttonTextStyle,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class UpcomingSessionSection extends StatelessWidget {
+  final List<SessionModel> sessions;
+
+  const UpcomingSessionSection({
+    super.key,
+    required this.sessions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final highlightedDates = sessions
+        .map((session) => DateTime.parse(session.startTime))
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Upcoming Session',
+                style: AppDefaults.titleHeadlineStyle,
+              ),
+              TextButton(
+                onPressed: () {},
+                child: Text(
+                  'See all',
+                  style: AppDefaults.titleSeeAll,
+                ),
+              ),
+            ],
+          ),
+        ),
+        CalendarWidget(
+          initialDate: DateTime.now(),
+          highlightedDates: highlightedDates,
+          onDateSelected: (selectedDate) {
+            // Handle date selection
+          },
+        ),
+        if (sessions.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text('No upcoming sessions',
+                style: TextStyle(color: Colors.grey)),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: sessions.length,
+            itemBuilder: (context, index) {
+              final session = sessions[index];
+              return UpcomingSessionCard(
+                title: session.name,
+                description: session.description.isEmpty
+                    ? 'No description available'
+                    : session.description,
+                date: _formatDate(session.startTime),
+                time: _formatTimeRange(session.startTime, session.endTime),
+                location: _formatLocation(session.latitude, session.longitude),
+              );
+            },
+          ),
+      ],
+    );
+  }
+}
+
+
+
+class SessionHistorySection extends StatelessWidget {
+  final List<SessionModel> sessions;
+
+  const SessionHistorySection({
+    super.key,
+    required this.sessions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Session History',
+                style: AppDefaults.titleHeadlineStyle,
+              ),
+              TextButton(
+                onPressed: () {},
+                child: Text(
+                  'See all',
+                  style: AppDefaults.titleSeeAll,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (sessions.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text('No session history',
+                style: TextStyle(color: Colors.grey)),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: sessions.length,
+            itemBuilder: (context, index) {
+              final session = sessions[index];
+              return HistoryCard(
+                title: session.name,
+                location: _formatLocation(session.latitude, session.longitude),
+                date: _formatDateShort(session.startTime),
+                time: _formatTimeRange(session.startTime, session.endTime),
+              );
+            },
+          ),
+      ],
+    );
+  }
+}
+class HistoryCard extends StatelessWidget {
+  final String title;
+  final String location;
+  final String date;
+  final String time;
+
+  const HistoryCard({
+    super.key,
+    required this.title,
+    required this.location,
+    required this.date,
+    required this.time,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: AppColors.background500,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: AppDefaults.textWhite600,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.location_on,
+                    size: 16, color: AppColors.primary500),
+                const SizedBox(width: 4),
+                Text(
+                  location,
+                  style: AppDefaults.titleStyleSmall,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: AppColors.primary500,
+                ),
+                const SizedBox(width: 4),
+                Text(date, style: AppDefaults.titleStyleSmall),
+                const SizedBox(width: 4),
+                Text(time),
+              ],
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: MoreDetailsButton(
+                onPressed: () {},
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+class UpcomingSessionCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final String date;
+  final String time;
+  final String location;
+
+  const UpcomingSessionCard({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.date,
+    required this.time,
+    required this.location,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, AppRoutes.SessionDetailsPage);
+      },
+      child: Card(
+        color: AppColors.background500,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: AppDefaults.textWhite600,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: AppDefaults.titleStyleSmall,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: AppColors.primary500,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        date,
+                        style: AppDefaults.titleStyleSmall,
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      height: 16,
+                      width: 1,
+                      decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(5))),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      const Icon(Icons.access_time,
+                          size: 16, color: AppColors.primary500),
+                      const SizedBox(width: 4),
+                      Text(
+                        time,
+                        style: AppDefaults.titleStyleSmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.location_on,
+                      size: 16, color: AppColors.primary500),
+                  const SizedBox(width: 4),
+                  Expanded(
+                      child: Text(
+                        location,
+                        style: AppDefaults.titleStyleSmall,
+                      )),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+class SessionCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final String time;
+  final String location;
+
+  const SessionCard({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.time,
+    required this.location,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: AppColors.background500,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: AppDefaults.textWhite500,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: AppDefaults.titleStyleSmall,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.access_time, size: 16, color: Colors.white),
+                const SizedBox(width: 4),
+                Text(
+                  time,
+                  style: AppDefaults.textWhite12_400,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(
+                  Icons.location_on,
+                  size: 16,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  location,
+                  style: AppDefaults.textWhite12_400,
+                ),
+              ],
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: MoreDetailsButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.SessionDetailsPage);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+class CalendarWidget extends StatefulWidget {
+  final DateTime initialDate;
+  final List<DateTime> highlightedDates;
+  final Function(DateTime)? onDateSelected;
+
+  const CalendarWidget({
+    super.key,
+    required this.initialDate,
+    required this.highlightedDates,
+    this.onDateSelected,
+  });
+
+  @override
+  _CalendarWidgetState createState() => _CalendarWidgetState();
+}
+
+class _CalendarWidgetState extends State<CalendarWidget> {
+  late DateTime _currentDate;
+  DateTime? _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentDate = DateTime(widget.initialDate.year, widget.initialDate.month);
+  }
+
+  void _changeMonth(int monthsToAdd) {
+    setState(() {
+      _currentDate =
+          DateTime(_currentDate.year, _currentDate.month + monthsToAdd);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: AppColors.background500,
+      child: Column(
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 20),
+          _buildCalendarGrid(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          DateFormat('MMMM yyyy').format(_currentDate),
+          style: const TextStyle(
+              color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_left, color: Colors.grey),
+              onPressed: () => _changeMonth(-1),
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right, color: Colors.grey),
+              onPressed: () => _changeMonth(1),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalendarGrid() {
+    return Column(
+      children: [
+        _buildWeekdayHeader(),
+        const SizedBox(height: 10),
+        ...List.generate(6, (index) => _buildWeek(index)),
+      ],
+    );
+  }
+
+  Widget _buildWeekdayHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+          .map((day) => Text(
+        day,
+        style: const TextStyle(color: Colors.grey, fontSize: 16),
+      ))
+          .toList(),
+    );
+  }
+
+  Widget _buildWeek(int weekIndex) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: List.generate(7, (dayIndex) {
+        final date = _getDateForDayInWeek(weekIndex, dayIndex);
+        final isCurrentMonth = date.month == _currentDate.month;
+        final isHighlighted = _isDateHighlighted(date);
+        final isSelected = _isDateSelected(date);
+
+        return GestureDetector(
+          onTap: () => _onDateTap(date),
+          child: Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isSelected ? AppColors.primary500 : Colors.transparent,
+              border: isHighlighted
+                  ? Border.all(color: AppColors.primary500, width: 1.5)
+                  : null,
+            ),
+            child: Text(
+              '${date.day}',
+              style: TextStyle(
+                color: isCurrentMonth
+                    ? (isSelected
+                    ? Colors.black
+                    : (isHighlighted ? AppColors.primary500 : Colors.white))
+                    : Colors.grey,
+                fontSize: 16,
+                fontWeight: isHighlighted || isSelected
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  DateTime _getDateForDayInWeek(int weekIndex, int dayIndex) {
+    final firstDayOfMonth = DateTime(_currentDate.year, _currentDate.month, 1);
+    final firstDayWeekday = firstDayOfMonth.weekday % 7;
+    final firstSundayDate =
+    firstDayOfMonth.subtract(Duration(days: firstDayWeekday));
+    return firstSundayDate.add(Duration(days: weekIndex * 7 + dayIndex));
+  }
+
+  bool _isDateHighlighted(DateTime date) {
+    return widget.highlightedDates.any((highlightedDate) =>
+    highlightedDate.year == date.year &&
+        highlightedDate.month == date.month &&
+        highlightedDate.day == date.day);
+  }
+
+  bool _isDateSelected(DateTime date) {
+    return _selectedDate != null &&
+        _selectedDate!.year == date.year &&
+        _selectedDate!.month == date.month &&
+        _selectedDate!.day == date.day;
+  }
+
+  void _onDateTap(DateTime date) {
+    setState(() {
+      _selectedDate = date;
+    });
+    if (widget.onDateSelected != null) {
+      widget.onDateSelected!(date);
+    }
+  }
+}
+
+// Utility functions
+String _formatTimeRange(String startString, String endString) {
+  final start = DateTime.parse(startString);
+  final end = DateTime.parse(endString);
+  return '${DateFormat('hh:mm a').format(start)} - ${DateFormat('hh:mm a').format(end)}';
+}
+
+String _formatDate(String dateString) {
+  final date = DateTime.parse(dateString);
+  return DateFormat("dd'th' MMM, yyyy").format(date);
+}
+
+String _formatDateShort(String dateString) {
+  final date = DateTime.parse(dateString);
+  return DateFormat("dd'th' MMM").format(date);
+}
+
+String _formatLocation(double latitude, double longitude) {
+  // TODO: Implement reverse geocoding
+  return 'Lat: ${latitude.toStringAsFixed(4)}, Long: ${longitude.toStringAsFixed(4)}';
+}
+
+
+
+
+
+
+
+
+
+
+
+/*class SessionScreen extends StatelessWidget {
   const SessionScreen({super.key});
 
   @override
@@ -620,4 +1368,5 @@ class HistoryCard extends StatelessWidget {
       ),
     );
   }
-}
+}*/
+
