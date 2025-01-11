@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:link_level_up/config/app_colors.dart';
+import 'package:link_level_up/config/app_defaults.dart';
 
 class BusinessHours {
   final bool isAvailable;
@@ -53,10 +55,14 @@ class TimeDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        height: 48,
+        height: 40,
         decoration: BoxDecoration(
-          color: const Color(0xFF1C1C1E),
+          color: AppColors.inputFiledBackground,
           borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(
+            color: AppColors.selectedBorderColor, // Border color
+            width: 1.0, // Border width
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -65,10 +71,8 @@ class TimeDropdown extends StatelessWidget {
               padding: const EdgeInsets.only(left: 8.0),
               child: Text(
                 title,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14.0,
-                ),
+                style: AppDefaults.buttonTextStyleSmall
+                    .copyWith(color: AppColors.textDark9),
               ),
             ),
             Expanded(
@@ -84,17 +88,15 @@ class TimeDropdown extends StatelessWidget {
                   ),
                   underline: const SizedBox(),
                   dropdownColor: const Color(0xFF1C1C1E),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14.0,
-                  ),
+                  style: AppDefaults.buttonTextStyleSmall,
                   items: [
                     for (int hour = 0; hour < 24; hour++)
                       for (int minute in [0, 30])
                         DropdownMenuItem(
                           value: TimeOfDay(hour: hour, minute: minute),
                           child: Text(
-                            TimeOfDay(hour: hour, minute: minute).format(context),
+                            TimeOfDay(hour: hour, minute: minute)
+                                .format(context),
                             style: const TextStyle(color: Colors.white),
                           ),
                         ),
@@ -183,87 +185,96 @@ class BusinessHoursSelectorState extends State<BusinessHoursSelector> {
               final hours = entry.value;
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
+                padding: const EdgeInsets.only(bottom: 2.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(
-                      width: 50,
-                      child: Text(
-                        day.substring(0, 3),
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16.0,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
                       width: 45,
                       child: Switch(
+                        activeColor: AppColors.secondary500,
                         value: hours.isAvailable,
                         onChanged: (value) {
                           setState(() {
                             businessHours[day] = BusinessHours(
                               isAvailable: value,
-                              startTime: value ? (hours.startTime ?? const TimeOfDay(hour: 10, minute: 0)) : null,
-                              endTime: value ? (hours.endTime ?? const TimeOfDay(hour: 17, minute: 0)) : null,
+                              startTime: value
+                                  ? (hours.startTime ??
+                                      const TimeOfDay(hour: 10, minute: 0))
+                                  : null,
+                              endTime: value
+                                  ? (hours.endTime ??
+                                      const TimeOfDay(hour: 17, minute: 0))
+                                  : null,
                             );
                           });
                           updateHours();
                         },
                       ),
                     ),
-                    const SizedBox(width: 8.0),
+                    const SizedBox(width: 12.0),
+                    SizedBox(
+                      width: 40,
+                      child: Text(
+                        day.substring(0, 3),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12.0,
+                        ),
+                      ),
+                    ),
+
                     Expanded(
                       child: hours.isAvailable
                           ? Row(
-                        children: [
-                          TimeDropdown(
-                            title: 'From',
-                            value: hours.startTime ?? const TimeOfDay(hour: 9, minute: 0),
-                            onChanged: (TimeOfDay newTime) {
-                              setState(() {
-                                businessHours[day] = BusinessHours(
-                                  isAvailable: true,
-                                  startTime: newTime,
-                                  endTime: hours.endTime,
-                                );
-                              });
-                              updateHours();
-                            },
-                          ),
-                          const SizedBox(width: 8.0),
-                          TimeDropdown(
-                            title: 'To',
-                            value: hours.endTime ?? const TimeOfDay(hour: 17, minute: 0),
-                            onChanged: (TimeOfDay newTime) {
-                              setState(() {
-                                businessHours[day] = BusinessHours(
-                                  isAvailable: true,
-                                  startTime: hours.startTime,
-                                  endTime: newTime,
-                                );
-                              });
-                              updateHours();
-                            },
-                          ),
-                        ],
-                      )
+                              children: [
+                                TimeDropdown(
+                                  title: 'From',
+                                  value: hours.startTime ??
+                                      const TimeOfDay(hour: 9, minute: 0),
+                                  onChanged: (TimeOfDay newTime) {
+                                    setState(() {
+                                      businessHours[day] = BusinessHours(
+                                        isAvailable: true,
+                                        startTime: newTime,
+                                        endTime: hours.endTime,
+                                      );
+                                    });
+                                    updateHours();
+                                  },
+                                ),
+                                const SizedBox(width: 8.0),
+                                TimeDropdown(
+                                  title: 'To',
+                                  value: hours.endTime ??
+                                      const TimeOfDay(hour: 17, minute: 0),
+                                  onChanged: (TimeOfDay newTime) {
+                                    setState(() {
+                                      businessHours[day] = BusinessHours(
+                                        isAvailable: true,
+                                        startTime: hours.startTime,
+                                        endTime: newTime,
+                                      );
+                                    });
+                                    updateHours();
+                                  },
+                                ),
+                              ],
+                            )
                           : Container(
-                        height: 48,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1C1C1E),
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: const Text(
-                          'Not Available',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14.0,
-                          ),
-                        ),
-                      ),
+                              height: 40,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                  color: AppColors.inputFiledBackground,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(
+                                      color: AppColors.selectedBorderColor,
+                                      width: 1)),
+                              child: Text(
+                                'Not Available',
+                                style: AppDefaults.buttonTextStyleSmall,
+                              ),
+                            ),
                     ),
                   ],
                 ),
@@ -275,4 +286,3 @@ class BusinessHoursSelectorState extends State<BusinessHoursSelector> {
     );
   }
 }
-

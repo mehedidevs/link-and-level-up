@@ -59,12 +59,9 @@ class _NewPasswordFormState extends State<NewPasswordForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: AppDefaults.space),
-          const Text(
+          Text(
             "Password",
-            style: TextStyle(
-                color: AppColors.text100,
-                fontWeight: FontWeight.w600,
-                fontSize: 14),
+            style: AppDefaults.textWhite500,
           ),
           TextFormField(
             onChanged: (password) {
@@ -82,7 +79,7 @@ class _NewPasswordFormState extends State<NewPasswordForm> {
                 borderSide: BorderSide.none,
               ),
               hintText: 'Enter Password',
-              hintStyle: const TextStyle(color: AppColors.text700),
+              hintStyle: AppDefaults.hintStyle,
               prefixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -114,12 +111,9 @@ class _NewPasswordFormState extends State<NewPasswordForm> {
             validator: _validatePassword,
           ),
           const SizedBox(height: AppDefaults.space),
-          const Text(
+          Text(
             "Re-Type Password",
-            style: TextStyle(
-                color: AppColors.text100,
-                fontWeight: FontWeight.w600,
-                fontSize: 14),
+            style: AppDefaults.textWhite500,
           ),
           TextFormField(
             onChanged: (password) {
@@ -137,7 +131,7 @@ class _NewPasswordFormState extends State<NewPasswordForm> {
                 borderSide: BorderSide.none,
               ),
               hintText: 'Re-Enter Password',
-              hintStyle: const TextStyle(color: AppColors.text700),
+              hintStyle: AppDefaults.hintStyle,
               prefixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -179,7 +173,10 @@ class _NewPasswordFormState extends State<NewPasswordForm> {
                 borderRadius: BorderRadius.circular(AppDefaults.radius),
               ),
             ),
-            child: const Text('Reset Password'),
+            child: Text(
+              'Reset Password',
+              style: AppDefaults.buttonTextStyle,
+            ),
           ),
         ],
       ),

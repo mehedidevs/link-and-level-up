@@ -27,18 +27,15 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
               Navigator.pop(context, true);
             },
           ),
-          title: const Text("Forgot Password",
-              style: TextStyle(
-                color: AppColors.text100,
-                fontSize: 24,
-                fontWeight: FontWeight.w500,
-              )),
+          title: Text(
+            "Forgot Password",
+            style: AppDefaults.primaryHeadline500_24,
+          ),
         ),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(AppDefaults.space),
             child: NewPasswordForm(),
-
           ),
         ),
       ),

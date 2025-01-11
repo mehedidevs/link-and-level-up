@@ -155,26 +155,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: AppDefaults.space * 3),
-                    const Text(
+                    Text(
                       'Create Your Account',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.text100,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppDefaults.primaryHeadline500_24,
                     ),
                     const SizedBox(height: AppDefaults.space),
                     Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'Already Have An Account?',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: AppColors.text300,
-                                fontWeight: FontWeight.w600),
+                            style: AppDefaults.textWhite500,
                           ),
                           const SizedBox(
                             width: AppDefaults.padding,
@@ -183,13 +177,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             onTap: () {
                               Navigator.pushNamed(context, AppRoutes.login);
                             },
-                            child: const Text(
+                            child: Text(
                               'Log In',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary500,
-                              ),
+                              style: AppDefaults.titlePrimaryColor500_14,
                             ),
                           ),
                         ],
@@ -201,12 +192,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
+                          Text(
                             "Full Name",
-                            style: TextStyle(
-                                color: AppColors.text100,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14),
+                            style: AppDefaults.textWhite500,
                           ),
                           TextFormField(
                             controller: _nameController,
@@ -216,12 +204,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               fillColor: AppColors.background700,
                               border: OutlineInputBorder(
                                 borderRadius:
-                                    BorderRadius.circular(AppDefaults.radius),
+                                BorderRadius.circular(AppDefaults.radius),
                                 borderSide: BorderSide.none,
                               ),
                               hintText: 'Enter Your Full Name',
-                              hintStyle:
-                                  const TextStyle(color: AppColors.text700),
+                              hintStyle: AppDefaults.hintStyle,
                               prefixIcon: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -245,12 +232,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             validator: _validateFullName,
                           ),
                           const SizedBox(height: AppDefaults.space),
-                          const Text(
+                          Text(
                             "Email",
-                            style: TextStyle(
-                                color: AppColors.text100,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14),
+                            style: AppDefaults.textWhite500,
                           ),
                           TextFormField(
                             controller: _emailController,
@@ -260,12 +244,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               fillColor: AppColors.background700,
                               border: OutlineInputBorder(
                                 borderRadius:
-                                    BorderRadius.circular(AppDefaults.radius),
+                                BorderRadius.circular(AppDefaults.radius),
                                 borderSide: BorderSide.none,
                               ),
                               hintText: 'Enter Email Address',
-                              hintStyle:
-                                  const TextStyle(color: AppColors.text700),
+                              hintStyle: AppDefaults.hintStyle,
                               prefixIcon: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -289,12 +272,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             validator: _validateEmail,
                           ),
                           const SizedBox(height: AppDefaults.space),
-                          const Text(
+                          Text(
                             "Password",
-                            style: TextStyle(
-                                color: AppColors.text100,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14),
+                            style: AppDefaults.textWhite500,
                           ),
                           TextFormField(
                             controller: _passwordController,
@@ -305,12 +285,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               fillColor: AppColors.background700,
                               border: OutlineInputBorder(
                                 borderRadius:
-                                    BorderRadius.circular(AppDefaults.radius),
+                                BorderRadius.circular(AppDefaults.radius),
                                 borderSide: BorderSide.none,
                               ),
                               hintText: 'Enter Password',
-                              hintStyle:
-                                  const TextStyle(color: AppColors.text700),
+                              hintStyle: AppDefaults.hintStyle,
                               prefixIcon: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -348,26 +327,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             onPressed: _isLoading ? null : _submitForm,
                             child: _isLoading
                                 ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 0,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.grey),
-                                    ),
-                                  )
-                                : const Text('Sign Up'),
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 0,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.grey),
+                              ),
+                            )
+                                : Text(
+                              'Sign Up', style: AppDefaults.buttonTextStyle,),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: AppDefaults.space),
-                    const Text(
-                      'By continuing, you agree to LLU\'s Terms of Service and Privacy Policy',
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                          color: AppColors.text400,
-                          fontWeight: FontWeight.w500),
+                     Text(
+                        'By continuing, you agree to LLU\'s Terms of Service and Privacy Policy',
+                        textAlign: TextAlign.start,
+                        style: AppDefaults.hintStyle500_12,
                     ),
                     const SizedBox(height: AppDefaults.space * 2),
                     const Row(
@@ -395,7 +373,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             vertical: AppDefaults.padding),
                         shape: RoundedRectangleBorder(
                           borderRadius:
-                              BorderRadius.circular(AppDefaults.radius),
+                          BorderRadius.circular(AppDefaults.radius),
                         ),
                       ),
                     ),
@@ -410,7 +388,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             vertical: AppDefaults.padding),
                         shape: RoundedRectangleBorder(
                           borderRadius:
-                              BorderRadius.circular(AppDefaults.radius),
+                          BorderRadius.circular(AppDefaults.radius),
                         ),
                       ),
                     ),

@@ -72,6 +72,7 @@ class AppColors {
   static const Color scaffoldBackground = Color(0xFF100F15);
   static const Color inputFiledBackground = Color(0xFF14121E);
   static const Color selectedBorderColor = Color(0xFF353755);
+  static const Color forgetPasswordColor = Color(0xFF5899FF);
 
   /// used for page with box background
   static const Color scaffoldWithBoxBackground = Color(0xFFF7F7F7);

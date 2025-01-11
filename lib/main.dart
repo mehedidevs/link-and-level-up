@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: AppTheme.defaultTheme,
       onGenerateRoute: RouteGenerator.onGenerate,
-      initialRoute: AppRoutes.AddFacilityPage,
+      initialRoute: AppRoutes.StartScreen,
       home: const StartScreen(),
     );
   }

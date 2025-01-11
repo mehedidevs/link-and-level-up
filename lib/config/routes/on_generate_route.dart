@@ -30,8 +30,8 @@ import '../../features/athlete/profile/trainer/add_trainer_working_hour_page.dar
 import '../../features/auth/presentation/pages/childern_selection_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/auth/presentation/pages/new_password_page.dart';
-import '../../features/auth/presentation/pages/otp_page.dart';
+import '../../features/auth/presentation/pages/input_new_password_page.dart';
+import '../../features/auth/presentation/pages/verify_otp_page.dart';
 import '../../features/auth/presentation/pages/sign_up_page.dart';
 import '../../features/auth/presentation/pages/start_page.dart';
 import '../../features/auth/presentation/pages/user_type_selection_screen.dart';

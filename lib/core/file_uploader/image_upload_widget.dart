@@ -12,7 +12,7 @@ class ImageUploadWidget extends StatefulWidget {
   final String endpoint;
   final Map<String, dynamic> additionalData;
   final Map<String, String>? additionalHeaders;
-  final Function(ImageUploadResponse)? onUploadComplete;
+  final Function(List<ImageUploadResponse>)? onUploadComplete;
   final Function(double)? onUploadProgress;
   final Widget? customLoadingWidget;
   final Widget? customErrorWidget;
@@ -36,39 +36,56 @@ class ImageUploadWidget extends StatefulWidget {
 }
 
 class _ImageUploadWidgetState extends State<ImageUploadWidget> {
-  File? _selectedImage;
+  List<File> _selectedImages = [];
   bool _isUploading = false;
   String? _error;
   double _uploadProgress = 0;
+  List<ImageUploadResponse> _uploadResponses = [];
 
-  Future<void> _uploadImage() async {
-    if (_selectedImage == null) return;
+  Future<void> _uploadImages() async {
+    if (_selectedImages.isEmpty) return;
 
     setState(() {
       _isUploading = true;
       _error = null;
+      _uploadResponses = [];
     });
 
-    final response = await widget.uploadService.uploadImage(
-      imageFile: _selectedImage!,
-      endpoint: widget.endpoint,
-      additionalData: widget.additionalData,
-      additionalHeaders: widget.additionalHeaders,
-      onSendProgress: (sent, total) {
-        final progress = sent / total;
-        setState(() => _uploadProgress = progress);
-        widget.onUploadProgress?.call(progress);
-      },
-    );
+    try {
+      for (int i = 0; i < _selectedImages.length; i++) {
+        final response = await widget.uploadService.uploadImage(
+          imageFile: _selectedImages[i],
+          endpoint: widget.endpoint,
+          additionalData: widget.additionalData,
+          additionalHeaders: widget.additionalHeaders,
+          onSendProgress: (sent, total) {
+            final individualProgress = sent / total;
+            final overallProgress = (i + individualProgress) / _selectedImages.length;
+            setState(() => _uploadProgress = overallProgress);
+            widget.onUploadProgress?.call(overallProgress);
+          },
+        );
 
-    setState(() {
-      _isUploading = false;
-      if (!response.success) {
-        _error = response.message;
+        _uploadResponses.add(response);
+
+        if (!response.success) {
+          setState(() {
+            _error = response.message;
+          });
+          break;
+        }
       }
-    });
+    } catch (e) {
+      setState(() {
+        _error = 'Error uploading images: $e';
+      });
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
 
-    widget.onUploadComplete?.call(response);
+      widget.onUploadComplete?.call(_uploadResponses);
+    }
   }
 
   @override
@@ -77,16 +94,17 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       mainAxisSize: MainAxisSize.min,
       children: [
         ImagePickerWidget(
-          onImageSelected: (file) {
-            setState(() => _selectedImage = file);
+          onImagesSelected: (files) {
+            setState(() => _selectedImages = files);
           },
+          initialImages: _selectedImages,
         ),
-        if (_selectedImage != null && !_isUploading) ...[
+        if (_selectedImages.isNotEmpty && !_isUploading) ...[
           const SizedBox(height: 20),
           ElevatedButton.icon(
-            onPressed: _uploadImage,
+            onPressed: _uploadImages,
             icon: const Icon(Icons.upload),
-            label: const Text('Upload Image'),
+            label: Text('Upload ${_selectedImages.length} Images'),
           ),
         ],
         if (_isUploading)
@@ -94,14 +112,25 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
               Column(
                 children: [
                   const CircularProgressIndicator(),
-                  Text('${(_uploadProgress * 100).toStringAsFixed(1)}%'),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Uploading ${(_uploadProgress * 100).toStringAsFixed(1)}%',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  Text(
+                    'Image ${(_uploadProgress * _selectedImages.length).ceil()} of ${_selectedImages.length}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ],
               ),
         if (_error != null)
           widget.customErrorWidget ??
-              Text(
-                _error!,
-                style: const TextStyle(color: Colors.red),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
       ],
     );

@@ -5,7 +5,6 @@ import '../../../../../config/app_defaults.dart';
 import '../../../../../config/app_icons.dart';
 import '../../../../../config/routes/app_routes.dart';
 
-
 class ForgotForm extends StatefulWidget {
   const ForgotForm({super.key});
 
@@ -42,12 +41,9 @@ class _ForgotFormState extends State<ForgotForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: AppDefaults.space),
-          const Text(
+          Text(
             "Email",
-            style: TextStyle(
-                color: AppColors.text100,
-                fontWeight: FontWeight.w600,
-                fontSize: 14),
+            style: AppDefaults.textWhite500,
           ),
           TextFormField(
             style: const TextStyle(color: Colors.white),
@@ -59,7 +55,7 @@ class _ForgotFormState extends State<ForgotForm> {
                 borderSide: BorderSide.none,
               ),
               hintText: 'Enter Email Address',
-              hintStyle: const TextStyle(color: AppColors.text700),
+              hintStyle: AppDefaults.hintStyle,
               prefixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -93,7 +89,10 @@ class _ForgotFormState extends State<ForgotForm> {
                 borderRadius: BorderRadius.circular(AppDefaults.radius),
               ),
             ),
-            child: const Text('Send'),
+            child: Text(
+              'Send',
+              style: AppDefaults.buttonTextStyle,
+            ),
           ),
         ],
       ),

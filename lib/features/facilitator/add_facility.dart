@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:link_level_up/network/network_client.dart';
 
+import '../../common/FullScreenMap.dart';
 import '../../config/app_colors.dart';
 import '../../config/app_defaults.dart';
 import '../../core/file_uploader/image_upload_service.dart';
@@ -115,6 +118,23 @@ class _AddFacilityPageState extends State<AddFacilityPage> {
                 uploadService: networkClient.service,
                 endpoint: '/api/facilitator/add_img',
                 additionalData: {'facility_id': '15'},
+                onUploadComplete: (responses) {
+                  for (var response in responses) {
+                    print(
+                        'Upload ${response.success ? 'succeeded' : 'failed'}: ${response.message}');
+                  }
+                },
+                onUploadProgress: (progress) {
+                  print(
+                      'Overall upload progress: ${(progress * 100).toStringAsFixed(1)}%');
+                },
+              ),
+
+              /*
+              ImageUploadWidget(
+                uploadService: networkClient.service,
+                endpoint: '/api/facilitator/add_img',
+                additionalData: {'facility_id': '15'},
                 onUploadComplete: (response) {
                   print('Upload complete: ${response.success}');
                 },
@@ -122,7 +142,7 @@ class _AddFacilityPageState extends State<AddFacilityPage> {
                   print('Upload progress: ${progress * 100}%');
                 },
               ),
-              const GallerySection(),
+              const GallerySection(),*/
               const SectionHeader('Address'),
               const AddressSection(),
             ],
@@ -149,61 +169,68 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-class BasicInfoSection extends StatelessWidget {
+class BasicInfoSection extends StatefulWidget {
   BasicInfoSection({super.key});
 
-  final TextEditingController _controller = TextEditingController();
+  @override
+  State<BasicInfoSection> createState() => _BasicInfoSectionState();
+}
+
+class _BasicInfoSectionState extends State<BasicInfoSection> {
+  late Currency _selectedCurrency;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCurrency = CurrencyData.currencies.first;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController _facilityNamecontroller =
+        TextEditingController();
+    final TextEditingController _currencycontroller = TextEditingController();
+    final TextEditingController _establishedController =
+        TextEditingController();
+    final TextEditingController _numberOfProfessionalController =
+        TextEditingController();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const LabeledTextField(label: 'Facility Name*'),
+        LabeledTextField(
+          label: 'Facility Name',
+          controller: _facilityNamecontroller,
+        ),
         const SizedBox(height: 16),
         CurrencyInput(
-          controller: currencyController,
+          controller: _currencycontroller,
+          selectedCurrencyCode: _selectedCurrency.code,
           onChanged: (value) {
-            print('Amount: $value');
+            // Handle amount changes
+            print('Amount changed: $value');
           },
           onCurrencyChanged: (currency) {
-            print('Selected currency: $currency');
+            setState(() {
+              _selectedCurrency = currency;
+            });
+            print('Currency changed to: ${currency.code}');
           },
         ),
         const SizedBox(height: 16),
-        const LabeledTextField(label: 'Established in*'),
+        LabeledTextField(
+          label: 'Established in',
+          controller: _establishedController,
+        ),
         const SizedBox(height: 16),
-        const LabeledTextField(label: 'Professionals Resources*'),
+        LabeledTextField(
+          label: 'Professionals Resources',
+          controller: _numberOfProfessionalController,
+        ),
       ],
     );
   }
 }
-
-/*class LabeledTextField extends StatelessWidget {
-  final String label;
-
-  const LabeledTextField({super.key, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      cursorColor: Colors.white,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: AppColors.background600,
-        labelText: label,
-        labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.0)),
-        ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: AppColors.primary500),
-        ),
-      ),
-    );
-  }
-}*/
 
 class LabeledTextField extends StatelessWidget {
   final TextEditingController? controller;
@@ -251,11 +278,11 @@ class LabeledTextField extends StatelessWidget {
               hintText: 'Write facility name',
               hintStyle: AppDefaults.hintStyle,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 16.0,
+                horizontal: 8.0,
+                vertical: 4.0,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16.0),
+                borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide.none,
               ),
               filled: true,
@@ -268,54 +295,138 @@ class LabeledTextField extends StatelessWidget {
   }
 }
 
-class CurrencyInput extends StatelessWidget {
+// lib/models/currency.dart
+class Currency {
+  final String code;
+  final String symbol;
+  final String name;
+
+  const Currency({
+    required this.code,
+    required this.symbol,
+    required this.name,
+  });
+}
+
+// lib/data/currency_data.dart
+class CurrencyData {
+  static const List<Currency> currencies = [
+    Currency(
+      code: 'USD',
+      symbol: '\$',
+      name: 'US Dollar',
+    ),
+    Currency(
+      code: 'EUR',
+      symbol: '€',
+      name: 'Euro',
+    ),
+    Currency(
+      code: 'GBP',
+      symbol: '£',
+      name: 'British Pound',
+    ),
+    Currency(
+      code: 'JPY',
+      symbol: '¥',
+      name: 'Japanese Yen',
+    ),
+    // Add more currencies as needed
+  ];
+
+  static Currency? findByCode(String code) {
+    try {
+      return currencies.firstWhere((currency) => currency.code == code);
+    } catch (e) {
+      return null;
+    }
+  }
+}
+
+// Updated CurrencyInput widget
+class CurrencyInput extends StatefulWidget {
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
-  final ValueChanged<String>? onCurrencyChanged;
+  final ValueChanged<Currency>? onCurrencyChanged;
+  final String selectedCurrencyCode;
 
   const CurrencyInput({
     super.key,
     this.controller,
     this.onChanged,
     this.onCurrencyChanged,
+    required this.selectedCurrencyCode,
   });
+
+  @override
+  State<CurrencyInput> createState() => _CurrencyInputState();
+}
+
+class _CurrencyInputState extends State<CurrencyInput> {
+  late Currency _selectedCurrency;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCurrency = CurrencyData.findByCode(widget.selectedCurrencyCode) ??
+        CurrencyData.currencies.first;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.inputFiledBackground,
-        borderRadius: BorderRadius.circular(16.0),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
-          // Currency Dropdown
           DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: 'USD',
+              value: _selectedCurrency.code,
               icon: Icon(
                 Icons.arrow_drop_down,
                 color: AppColors.gray,
               ),
               style: AppDefaults.titleStyleReview,
               dropdownColor: const Color(0xFF1C1C1E),
-              items: ['USD', 'EUR', 'GBP', 'JPY'].map((String value) {
+              items: CurrencyData.currencies.map((Currency currency) {
                 return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
+                  value: currency.code,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(currency.code),
+                      const SizedBox(width: 4),
+                      Text(
+                        currency.symbol,
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }).toList(),
               onChanged: (String? newValue) {
-                if (newValue != null && onCurrencyChanged != null) {
-                  onCurrencyChanged!(newValue);
+                if (newValue != null) {
+                  final newCurrency = CurrencyData.findByCode(newValue);
+                  if (newCurrency != null) {
+                    setState(() {
+                      _selectedCurrency = newCurrency;
+                    });
+                    if (widget.onCurrencyChanged != null) {
+                      widget.onCurrencyChanged!(newCurrency);
+                    }
+                  }
                 }
               },
             ),
           ),
-          // Vertical Divider
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             child: Text(
               '|',
               style: TextStyle(
@@ -324,11 +435,10 @@ class CurrencyInput extends StatelessWidget {
               ),
             ),
           ),
-          // Amount Input
           Expanded(
             child: TextFormField(
-              controller: controller,
-              onChanged: onChanged,
+              controller: widget.controller,
+              onChanged: widget.onChanged,
               style: TextStyle(
                 color: Colors.grey[400],
                 fontSize: 20.0,
@@ -339,7 +449,7 @@ class CurrencyInput extends StatelessWidget {
               ],
               decoration: InputDecoration(
                 hintText: '00.00',
-                prefixText: '\$ ',
+                prefixText: '${_selectedCurrency.symbol} ',
                 prefixStyle: TextStyle(
                   color: Colors.grey[400],
                   fontSize: 20.0,
@@ -349,7 +459,8 @@ class CurrencyInput extends StatelessWidget {
                   fontSize: 20.0,
                 ),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 16.0),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
               ),
             ),
           ),
@@ -358,38 +469,6 @@ class CurrencyInput extends StatelessWidget {
     );
   }
 }
-
-/*class CustomDropdown extends StatelessWidget {
-  final String label;
-  final List<String> items;
-
-  const CustomDropdown({super.key, required this.label, required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-        ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.white),
-        ),
-      ),
-      dropdownColor: Colors.grey[900],
-      items: items.map((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      onChanged: (value) {},
-    );
-  }
-}*/
 
 class FacilitiesSelector extends StatefulWidget {
   final List<String> availableFacilities;
@@ -628,151 +707,7 @@ class FacilitiesSelectorState extends State<FacilitiesSelector> {
   }
 }
 
-/*
-class FacilitiesSelector extends StatefulWidget {
-  final List<String> availableFacilities;
-  final Function(List<String>) onFacilitiesChanged;
 
-  const FacilitiesSelector({
-    super.key,
-    required this.availableFacilities,
-    required this.onFacilitiesChanged,
-  });
-
-  @override
-  _FacilitiesSelectorState createState() => _FacilitiesSelectorState();
-}
-
-class _FacilitiesSelectorState extends State<FacilitiesSelector> {
-  List<String> selectedFacilities = [];
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Label with red asterisk
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'Facilities',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              TextSpan(
-                text: '*',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8.0),
-        // Dropdown container
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.inputFiledBackground,
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              hint: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  'Enter your facilities here',
-                  style: AppDefaults.hintStyle,
-                ),
-              ),
-              icon: Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Colors.grey[600],
-                ),
-              ),
-              dropdownColor: AppColors.inputFiledBackground,
-              items: widget.availableFacilities
-                  .where((facility) => !selectedFacilities.contains(facility))
-                  .map((String facility) {
-                return DropdownMenuItem<String>(
-                  value: facility,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      facility,
-                      style:AppDefaults.hintStyle,
-                    ),
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    selectedFacilities.add(newValue);
-                  });
-                  widget.onFacilitiesChanged(selectedFacilities);
-                }
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 16.0),
-        // Selected facilities chips
-        Wrap(
-          spacing: 8.0,
-          runSpacing: 8.0,
-          children: selectedFacilities.map((facility) {
-            return Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 4.0,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.inputFiledBackground,
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(
-                  color: AppColors.selectedBorderColor,  // Border color
-                  width: 1.0,          // Border width
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    facility,
-                    style: AppDefaults.textWhite500,
-                  ),
-                  const SizedBox(width: 8.0),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedFacilities.remove(facility);
-                      });
-                      widget.onFacilitiesChanged(selectedFacilities);
-                    },
-                    child: Icon(
-                      Icons.close,
-                      color: Colors.grey[600],
-                      size: 20.0,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-}*/
 class FacilityChip extends StatelessWidget {
   final String label;
 
@@ -881,17 +816,266 @@ class AddressSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Container(
-          height: 100,
-          decoration: BoxDecoration(
-            color: Colors.grey[800],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Center(
-              child: Text('Map Placeholder',
-                  style: TextStyle(color: Colors.white))),
+        LocationPicker(
+          onLocationSelected: (LatLng, String) {
+
+          },
         ),
       ],
     );
   }
 }
+
+class LocationPicker extends StatefulWidget {
+  final Function(LatLng, String) onLocationSelected;
+
+  const LocationPicker({
+    Key? key,
+    required this.onLocationSelected,
+  }) : super(key: key);
+
+  @override
+  _LocationPickerState createState() => _LocationPickerState();
+}
+
+class _LocationPickerState extends State<LocationPicker> {
+  GoogleMapController? mapController;
+  LatLng _selectedLocation = const LatLng(-6.2088, 106.8456);
+  String _address = 'Fetching address...';
+  BitmapDescriptor? customMarker;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeMarker();
+    // Get initial address after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchAddress(_selectedLocation);
+    });
+  }
+
+  Future<void> _initializeMarker() async {
+    customMarker = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+    setState(() {});
+  }
+
+  Future<void> _fetchAddress(LatLng position) async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+      _selectedLocation = position;
+      _address = 'Fetching address...';
+    });
+
+    try {
+      final List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+        localeIdentifier: 'en', // Force English locale
+      );
+
+      if (!mounted) return;
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final List<String?> addressParts = [
+          place.name,
+          place.street,
+          place.subLocality,
+          place.locality,
+          place.postalCode,
+          place.country,
+        ].where((part) => part != null && part.isNotEmpty).toList();
+
+        final String formattedAddress = addressParts.join(', ');
+
+        setState(() {
+          _address = formattedAddress;
+          _isLoading = false;
+        });
+
+        widget.onLocationSelected(_selectedLocation, formattedAddress);
+
+        // Debug print
+        print('Successfully fetched address: $formattedAddress');
+        print('Raw placemark data: $place');
+      } else {
+        throw Exception('No address found');
+      }
+    } catch (e) {
+      print('Error fetching address: $e'); // Debug print
+      if (mounted) {
+        setState(() {
+          _address = 'Address not found. Coordinates: (${position.latitude.toStringAsFixed(4)}, '
+              '${position.longitude.toStringAsFixed(4)})';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (customMarker == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Column(
+      children: [
+        Container(
+          height: 350,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Stack(
+              children: [
+                GoogleMap(
+                  onMapCreated: (GoogleMapController controller) {
+                    mapController = controller;
+                  },
+                  initialCameraPosition: CameraPosition(
+                    target: _selectedLocation,
+                    zoom: 15,
+                  ),
+                  markers: {
+                    Marker(
+                      markerId: const MarkerId('selected_location'),
+                      position: _selectedLocation,
+                      icon: customMarker!,
+                      draggable: true,
+                      onDragEnd: (newPosition) {
+                        _fetchAddress(newPosition);
+                      },
+                    ),
+                  },
+                  onTap: _fetchAddress,
+                  zoomControlsEnabled: true,
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: true,
+                ),
+                if (_isLoading)
+                  Container(
+                    color: Colors.black.withOpacity(0.1),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FullScreenMap(
+                            initialLocation: _selectedLocation,
+                            customMarker: customMarker!,
+                            onLocationSelected: (newPosition) {
+                              _fetchAddress(newPosition);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.map),
+                    label: const Text('View on Map'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Location Details',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                  if (_isLoading) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade600),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 8),
+              SelectableText.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Coordinates:\n',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Lat: ${_selectedLocation.latitude.toStringAsFixed(6)}\n'
+                          'Lng: ${_selectedLocation.longitude.toStringAsFixed(6)}',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 8),
+              SelectableText.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Address:\n',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    TextSpan(
+                      text: _address,
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+

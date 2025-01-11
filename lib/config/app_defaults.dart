@@ -46,6 +46,8 @@ class AppDefaults {
       fontSize: 12, color: AppColors.textSmall, fontWeight: FontWeight.w400);
   static TextStyle textWhite12_400 = GoogleFonts.inter(
       fontSize: 12, color: AppColors.text00, fontWeight: FontWeight.w400);
+  static TextStyle textforgetPassword12_400 = GoogleFonts.inter(
+      fontSize: 13, color: AppColors.forgetPasswordColor, fontWeight: FontWeight.w400);
   static TextStyle titleStyleReview = GoogleFonts.inter(
       fontSize: 12, color: AppColors.textSmall, fontWeight: FontWeight.w500);
 
@@ -76,11 +78,19 @@ class AppDefaults {
       fontSize: 20, color: AppColors.text00, fontWeight: FontWeight.w500);
   static TextStyle titleSeeAll = GoogleFonts.inter(
       fontSize: 12, color: AppColors.primary500, fontWeight: FontWeight.w400);
+  static TextStyle titlePrimaryColor500_14 = GoogleFonts.inter(
+      fontSize: 14, color: AppColors.primary500, fontWeight: FontWeight.w500);
+
   static TextStyle hintStyle = GoogleFonts.inter(
       fontSize: 12, color: AppColors.textHint, fontWeight: FontWeight.w400);
   static TextStyle primaryHeadline = GoogleFonts.inter(
       fontSize: 26, color: AppColors.primary600, fontWeight: FontWeight.w800);
 
+  static TextStyle primaryHeadline500_24 = GoogleFonts.inter(
+      fontSize: 24, color: AppColors.text00, fontWeight: FontWeight.w500);
+
+  static TextStyle hintStyle500_12 = GoogleFonts.inter(
+      fontSize: 12, color: AppColors.textSmall, fontWeight: FontWeight.w500);
   static const aubergineMapStyle = '''
 [
   {
