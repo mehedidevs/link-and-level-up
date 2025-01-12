@@ -1,12 +1,15 @@
+import 'package:http/http.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:dio/dio.dart';
 
-import '../core/constants/keys.dart';
-import '../db/secure_storage_service.dart';
+
 import 'athlete/createprofile/athlete_profile_request.dart';
 import 'athlete/createprofile/athlete_response.dart';
+import 'auth/forget_password/forgotpassword.dart';
 import 'auth/login/login_request.dart';
 import 'auth/login/login_response.dart';
+import 'auth/otp/otp.dart';
+import 'auth/otp/verify_otp.dart';
 import 'auth/register/sign_up_response.dart';
 import 'auth/register/user_request.dart';
 import 'facility/session_model.dart';
@@ -23,20 +26,26 @@ abstract class ApiService {
   @POST("auth/register")
   Future<SignUpResponse> signUp(@Body() UserRequest request);
 
+  @POST("auth/request_OTP")
+  Future<OTPResponse> requestOTP(@Body() OTPRequest request);
+
+  @POST("auth/verify_OTP")
+  Future<VerifyOtpResponse> verifyOTP(@Body() VerifyOtpRequest request);
+
+  @POST("auth/reset_password")
+  Future<ResetPasswordResponse> resetPassword(@Body() ResetPasswordRequest request);
+
   // http://3.142.144.94:3000/auth/register
 
   @POST("/auth/register_special_user/{id}")
-  Future<AthleteResponse> registerAthlete(
-      @Path("id") int id,
-      @Query("type") String type,
-      @Body() AthleteProfileRequest request);
+  Future<AthleteResponse> registerAthlete(@Path("id") int id,
+      @Query("type") String type, @Body() AthleteProfileRequest request);
 
   @GET('/api/facilitator/home')
   Future<FacilitatorHomeResponse> getFacilityHome({
     @Query('page') required int page,
     @Query('limit') required int limit,
   });
-
 
 /*
   Future<FacilitatorHomeResponse> getFacilitatorHome({

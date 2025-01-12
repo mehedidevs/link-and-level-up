@@ -73,9 +73,12 @@ class RouteGenerator {
       case AppRoutes.forgotPassword:
         return CupertinoPageRoute(builder: (_) => const ForgotPasswordPage());
       case AppRoutes.OtpPage:
-        return CupertinoPageRoute(builder: (_) => const OtpPage());
+        return CupertinoPageRoute(
+            builder: (_) => const OtpPage(), settings: settings);
       case AppRoutes.passwordReset:
-        return CupertinoPageRoute(builder: (_) => const NewPasswordPage());
+        return CupertinoPageRoute(
+            builder: (_) => const NewPasswordPage(),
+            settings: settings);
       case AppRoutes.userTypeSelection:
         return CupertinoPageRoute(
             builder: (_) => const UserTypeSelectionScreen());

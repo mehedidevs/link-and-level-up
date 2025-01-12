@@ -1,9 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../config/app_colors.dart';
 import '../../../../../config/app_defaults.dart';
 import '../../../../../config/app_icons.dart';
 import '../../../../../config/routes/app_routes.dart';
+import '../../../../../network/auth/otp/otp.dart';
+import '../../../../../network/network_client.dart';
 
 class ForgotForm extends StatefulWidget {
   const ForgotForm({super.key});
@@ -14,6 +17,9 @@ class ForgotForm extends StatefulWidget {
 
 class _ForgotFormState extends State<ForgotForm> {
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final networkClient = NetworkClient();
+  bool _isLoading = false;
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
@@ -26,11 +32,78 @@ class _ForgotFormState extends State<ForgotForm> {
     return null;
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // Proceed with form submission
-      Navigator.pushNamed(context, AppRoutes.OtpPage);
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final request = OTPRequest(
+        email: _emailController.text,
+      );
+
+      final response = await networkClient.apiService.requestOTP(request);
+
+      if (response != null) {
+        _showSuccess(response.message);
+        if (mounted) {
+          // Navigate to OTP verification page with email
+          Navigator.pushNamed(
+              context,
+              AppRoutes.OtpPage,
+              arguments: _emailController.text
+          );
+        }
+      } else {
+        _showError('Failed to send OTP. Please try again.');
+      }
+    } on DioException catch (e) {
+      String errorMessage = 'An error occurred';
+
+      if (e.response != null) {
+        errorMessage = e.response?.data['message'] ?? errorMessage;
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        errorMessage = 'Connection timeout';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'No internet connection';
+      }
+
+      _showError(errorMessage);
+    } catch (e) {
+      _showError('An unexpected error occurred');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
   }
 
   @override
@@ -46,6 +119,8 @@ class _ForgotFormState extends State<ForgotForm> {
             style: AppDefaults.textWhite500,
           ),
           TextFormField(
+            controller: _emailController,
+            enabled: !_isLoading,
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               filled: true,
@@ -80,16 +155,27 @@ class _ForgotFormState extends State<ForgotForm> {
           ),
           const SizedBox(height: AppDefaults.space),
           ElevatedButton(
-            onPressed: _submitForm,
+            onPressed: _isLoading ? null : _submitForm,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary500,
-              padding:
-                  const EdgeInsets.symmetric(vertical: AppDefaults.padding),
+              padding: const EdgeInsets.symmetric(
+                  vertical: AppDefaults.padding
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppDefaults.radius),
               ),
             ),
-            child: Text(
+            child: _isLoading
+                ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 0,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.white),
+              ),
+            )
+                : Text(
               'Send',
               style: AppDefaults.buttonTextStyle,
             ),
